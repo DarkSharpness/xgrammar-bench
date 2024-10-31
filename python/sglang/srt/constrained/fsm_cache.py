@@ -93,3 +93,7 @@ class FSMCache(BaseToolCache):
             logger.warning(f"skip invalid regex guide: {regex=}, {e=}")
             return None, regex
         return RegexGuide(regex, self.outlines_tokenizer), regex
+
+    # disable the cache mechanism
+    def query(self, key):
+        return self.init_value(key)
