@@ -51,7 +51,7 @@ class BNFCache:
     def get_context(self, key: Tuple[str, str]) -> xgrammar.BNFGrammar:
         key_type, key_string = key
         if key_type == "json":
-            return xgrammar.BuiltinGrammar.json_schema(key_string)
+            return xgrammar.BuiltinGrammar.json()
         elif key_type == "regex":
             raise ValueError(f"regex hasn't been supported by xgrammar yet")
         else:

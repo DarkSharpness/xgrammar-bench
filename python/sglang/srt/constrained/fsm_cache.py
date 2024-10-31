@@ -19,6 +19,7 @@ import logging
 from interegular import InvalidSyntax, parse_pattern
 from outlines.fsm.json_schema import build_regex_from_schema
 from transformers import AutoTokenizer
+from outlines.fsm.guide import CFGGuide
 
 from sglang.srt.constrained import RegexGuide, TransformerTokenizer
 from sglang.srt.constrained.base_tool_cache import BaseToolCache
@@ -72,27 +73,31 @@ class FSMCache(BaseToolCache):
 
     def init_value(self, key):
         key_type, key_string = key
-        if key_type == "json":
-            try:
-                regex = build_regex_from_schema(
-                    key_string,
-                    whitespace_pattern=self.constrained_json_whitespace_pattern,
-                )
-            except NotImplementedError as e:
-                logger.warning(
-                    f"skip invalid json schema: json_schema={key_string}, {e=}"
-                )
-                return None, key_string
-        elif key_type == "regex":
-            regex = key_string
-        else:
-            raise ValueError(f"Invalid key_type: {key_type}")
-        try:
-            parse_pattern(regex)
-        except InvalidSyntax as e:
-            logger.warning(f"skip invalid regex guide: {regex=}, {e=}")
-            return None, regex
-        return RegexGuide(regex, self.outlines_tokenizer), regex
+        json_grammar = r"""
+?start: value
+
+    ?value: object
+          | array
+          | string
+          | SIGNED_NUMBER      -> number
+          | "true"             -> true
+          | "false"            -> false
+          | "null"             -> null
+
+    array  : "[" [value ("," value)*] "]"
+    object : "{" [pair ("," pair)*] "}"
+    pair   : string ":" value
+
+    inner: /([^"]|\\\")+/ |
+    string : "\"" inner "\""
+
+    %import common.SIGNED_NUMBER
+    %import common.WS
+
+    %ignore WS
+"""
+        regex = "[0-9]+"
+        return CFGGuide(json_grammar, self.outlines_tokenizer), regex
 
     # disable the cache mechanism
     def query(self, key):

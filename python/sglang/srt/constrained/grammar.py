@@ -17,6 +17,7 @@ from typing import List, Optional, Tuple, Union
 
 import torch
 
+from outlines.fsm.guide import CFGGuide
 from sglang.srt.constrained import GrammarMatcher, RegexGuide
 from sglang.srt.constrained.bnf_cache import BNFCache
 from sglang.srt.constrained.fsm_cache import FSMCache
@@ -179,8 +180,9 @@ class GrammarCache:
         else:
             jump_map = None
             guide, regex = self.grammar_cache.query(key)
-            if isinstance(self.jump_cache, JumpForwardCache):
-                jump_map = self.jump_cache.query(regex)
+            assert isinstance(guide, CFGGuide)
+            # if isinstance(self.jump_cache, JumpForwardCache):
+            #     jump_map = self.jump_cache.query(regex)
             return Grammar((guide, 0), jump_map)
 
     def reset(self):
