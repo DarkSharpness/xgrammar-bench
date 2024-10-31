@@ -228,7 +228,7 @@ register_chat_template(
                 "<|eot_id|>",
             ),
         },
-        stop_str=("<|eot_id|>",),
+        stop_str=("<|eot_id|>","<|end_of_text|>",),
         image_token="<|image|>",
     )
 )
